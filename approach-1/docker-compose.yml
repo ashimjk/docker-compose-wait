@@ -1,0 +1,32 @@
+version: "3"
+
+services:
+  rabbitmq:
+    container_name: ajk_rabbitmq
+    image: rabbitmq:3.7-management-alpine
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+  web:
+    container_name: ajk_web
+    image: alpine:3.8
+    command: ["sh", "-c", "nc -z -v rabbitmq 5672"]
+    depends_on:
+      - rabbitmq
+    links:
+      - rabbitmq
+
+  waiting_for_rabbitmq:
+    container_name: ajk_waiting_for_rabbitmq
+    image: alpine:3.8
+    command:
+      [
+        "sh",
+        "-c",
+        'until nc -z -v rabbitmq 5672; do echo "Waiting for rabbitmq..." && sleep 1; done;',
+      ]
+    depends_on:
+      - rabbitmq
+    links:
+      - rabbitmq
